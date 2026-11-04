@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>איחוד הצלה | סימולטור מקרים – ABCDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F6; --panel:#FFFFFF; --panel2:#F5F7FB; --ink:#16213A; --muted:#5D6B82; --line:#D8DEE8;
+  --acc:#E8691A; --acc2:#F59A3C; --acc-ink:#FFFFFF; --ok:#17915A; --ok-bg:#E3F5EC; --bad:#CF2E2E; --bad-bg:#FBE7E7; --warn:#B7740B; --warn-bg:#FFF3DD;
+  --mon:#0E1626; --mon-ink:#E6EDF7; --mon-val:#4BE3A0;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1220; --panel:#142036; --panel2:#1A2842; --ink:#E8EEF8; --muted:#93A3BC; --line:#26354F;
+    --ok:#3FD08A; --ok-bg:#0F3324; --bad:#FF6B6B; --bad-bg:#3A1717; --warn:#F2B24A; --warn-bg:#3A2A0E;
+    --mon:#070C16; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1220; --panel:#142036; --panel2:#1A2842; --ink:#E8EEF8; --muted:#93A3BC; --line:#26354F;
+  --ok:#3FD08A; --ok-bg:#0F3324; --bad:#FF6B6B; --bad-bg:#3A1717; --warn:#F2B24A; --warn-bg:#3A2A0E;
+  --mon:#070C16; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:'Rubik',Arial,sans-serif;font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar-in{max-width:960px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-inline-end:auto}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--acc);display:grid;place-items:center;flex:none}
+.logo::before{content:"";width:18px;height:18px;background:
+  linear-gradient(#fff,#fff) center/6px 18px no-repeat,linear-gradient(#fff,#fff) center/18px 6px no-repeat}
+.lchip{background:#fff;border-radius:10px;padding:4px 8px;display:flex;align-items:center;flex:none;border:1px solid var(--line)}
+.lchip img{height:34px;width:auto;display:block}
+.hero-logo{background:#fff;border-radius:14px;padding:10px 16px;display:inline-block;margin-bottom:12px;border:1px solid var(--line)}
+.hero-logo img{height:64px;width:auto;display:block}
+.brand b{font-size:1.05rem;font-weight:800;display:block;line-height:1.2}
+.brand small{color:var(--muted);font-size:.8rem}
+.pill{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:5px 12px;font-size:.92rem;white-space:nowrap}
+.pill b{font-variant-numeric:tabular-nums}
+.timer b{color:var(--ok);font-family:ui-monospace,Menlo,monospace;font-size:1.05rem;direction:ltr;display:inline-block}
+.timer.low b{color:var(--bad)}
+.steps{max-width:960px;margin:0 auto;padding:0 14px 10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.steps span{flex:none;font-size:.8rem;padding:4px 10px;border-radius:8px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.steps span.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:700}
+.steps span.done{color:var(--ok);border-color:var(--ok)}
+.prog{height:4px;background:var(--line)}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));width:0;transition:width .4s}
+
+main{max-width:960px;margin:0 auto;padding:18px 14px 50px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+h1{font-size:1.6rem;font-weight:800;margin:0 0 6px}
+h2{font-size:1.25rem;font-weight:700;margin:0 0 10px}
+.muted{color:var(--muted)}
+
+/* menu */
+.cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:16px}
+.case{text-align:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--ink);display:flex;flex-direction:column;gap:6px;transition:border-color .15s,transform .15s}
+.case:hover{border-color:var(--acc);transform:translateY(-2px)}
+.case .top{display:flex;align-items:center;gap:8px}
+.case .em{font-size:1.5rem}
+.case b{font-size:1.05rem}
+.case .meta{color:var(--muted);font-size:.85rem}
+.best{margin-inline-start:auto;font-size:.78rem;color:var(--ok);font-weight:700}
+.opts-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink)}
+
+/* dispatch */
+.dispatch{border:1px solid var(--acc);background:linear-gradient(90deg,rgba(232,105,26,.12),transparent);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center}
+.siren{width:42px;height:42px;border-radius:50%;background:var(--bad);display:grid;place-items:center;font-size:1.3rem;flex:none;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(207,46,46,.18)}}
+@media (prefers-reduced-motion:reduce){.siren{animation:none}}
+.dispatch small{color:var(--acc);font-weight:700}
+.dispatch h2{margin:2px 0 0}
+.code{margin-inline-start:auto;background:var(--bad);color:#fff;font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.brief{margin-top:12px;background:var(--panel2);border-radius:12px;padding:12px 14px}
+.brief p{margin:4px 0}
+.btn{border:none;border-radius:12px;padding:12px 22px;font-weight:700;font-size:1.02rem}
+.btn.go{background:linear-gradient(90deg,var(--acc2),var(--acc));color:var(--acc-ink)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.full{width:100%;margin-top:14px}
+
+/* monitor */
+.mon{background:var(--mon);color:var(--mon-ink);border-radius:14px;padding:12px;margin:14px 0}
+.mon h3{margin:0 0 8px;font-size:.85rem;color:var(--mon-val);font-weight:500;display:flex;align-items:center;gap:6px}
+.mon h3::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mon-val);animation:pulse2 1s infinite}
+@keyframes pulse2{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.mon h3::before{animation:none}}
+.vit{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px}
+.vit div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 8px;text-align:center}
+.vit small{display:block;color:#93A3BC;font-size:.72rem}
+.vit b{font-size:1.15rem;color:var(--mon-val);direction:ltr;display:inline-block;font-variant-numeric:tabular-nums}
+.vit b.alert{color:#FF7A7A}
+.vit div.flash{animation:fl 1s}
+@keyframes fl{0%{background:rgba(75,227,160,.35)}100%{background:rgba(255,255,255,.05)}}
+
+.scene{border-inline-start:4px solid var(--acc);background:var(--panel2);border-radius:10px;padding:10px 14px;margin-bottom:14px}
+.scene small{color:var(--acc);font-weight:700}
+.stagehead{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tag{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:.82rem}
+.tag.acc{border-color:var(--acc);color:var(--acc);font-weight:700}
+.tag.pts{margin-inline-start:auto;border-color:var(--ok);color:var(--ok);font-weight:700}
+.q{font-size:1.15rem;font-weight:700;margin:4px 0 2px}
+.hint{color:var(--acc);font-size:.85rem;margin-bottom:10px}
+
+.opt{display:flex;align-items:center;gap:10px;width:100%;text-align:start;background:var(--panel2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;color:var(--ink);transition:border-color .12s}
+.opt:hover:not([disabled]){border-color:var(--acc2)}
+.opt .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--muted);flex:none;display:grid;place-items:center;font-size:.8rem}
+.opt.radio .box{border-radius:50%}
+.opt.sel{border-color:var(--acc)}
+.opt.sel .box{background:var(--acc);border-color:var(--acc);color:#fff}
+.opt.sel .box::after{content:"✓"}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.miss{border-style:dashed;border-color:var(--ok)}
+.ord{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;transition:transform .15s}
+.ord .n{width:28px;height:28px;border-radius:8px;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.ord .t{flex:1}
+.ord button{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:1rem}
+.ord button[disabled]{opacity:.3}
+.ord.right{border-color:var(--ok);background:var(--ok-bg)}
+.ord.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.fb{border-radius:12px;padding:12px 14px;margin-top:14px;border:1px solid}
+.fb.g{background:var(--ok-bg);border-color:var(--ok)}
+.fb.p{background:var(--warn-bg);border-color:var(--warn)}
+.fb.b{background:var(--bad-bg);border-color:var(--bad)}
+.fb b{display:flex;justify-content:space-between;gap:8px}
+.fb p{margin:6px 0 0}
+
+/* summary */
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ring{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;flex:none;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--line) 0)}
+.ring div{width:96px;height:96px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-size:1.7rem;font-weight:800}
+.rev{margin-top:16px}
+.rev details{background:var(--panel2);border-radius:10px;padding:10px 12px;margin:6px 0}
+.rev summary{cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.rev summary .s{margin-inline-start:auto;font-weight:700;white-space:nowrap}
+.rev p{margin:8px 0 0;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+@media (max-width:560px){h1{font-size:1.35rem}.brand small{display:none}.btn{padding:12px 16px}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <div class="brand"><span class="lchip"><img src="data:image/png;base64,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" alt="איחוד הצלה"></span><div><b>סימולטור מקרים – ABCDE</b><small>תרגול מתוך סיכום המחלות</small></div></div>
+    <span class="pill" id="scorePill" hidden>ניקוד: <b id="scoreV">0</b> / <b id="scoreMax">0</b></span>
+    <span class="pill timer" id="timerPill" hidden>⏱ <b id="timerV">06:00</b></span>
+  </div>
+  <div class="steps" id="steps" hidden></div>
+  <div class="prog"><i id="progBar"></i></div>
+</header>
+<main id="app"></main>
+
+<script>
+/* ---------- DATA ---------- */
+const SAFETY=['בטיחות: עצירה, סקירת זירה והתמגנות אישית','רושם ראשוני מהסביבה והערכת רמת הכרה','A: הערכת נתיב אוויר','B ו־C: נשימה, דופק, לחץ דם, מצב העור','D ו־E: AVPU, אישונים, סוכר וחשיפה'];
+const CASES=[
+{id:'asthma',em:'🫁',title:'קוצר נשימה בפארק',dx:'אסתמה',code:'קוד אדום',
+ patient:'מיכל, בת 24, נמצאת בפארק לאחר ריצה.',story:'מתקשה לנשום, נשמעים צפצופים, לא מסוגלת להשלים משפט. חברתה מספרת שיש לה משאף בתיק.',
+ stages:[
+ {tab:'בטיחות',scene:'הגעתם לפארק. המטופלת יושבת על ספסל.',q:{type:'order',text:'סדר את שלבי הגישה למטופלת, מהראשון לאחרון:',items:SAFETY,explain:'בטיחות קודמת לכל פעולה, אחריה רושם ראשוני והערכת הכרה, ואז בדיקה וטיפול לפי ABCDE.'}},
+ {tab:'אנמנזה',scene:'מיכל מהנהנת אבל לא מצליחה לדבר במשפטים מלאים.',q:{type:'multi',text:'אילו 3 שאלות רלוונטיות לאנמנזה?',opts:[['עבר ידוע של אסתמה ושימוש קבוע במשאפים?',1],['ניסתה טיפול עצמי במשאף לפני שהזעיקו?',1],['אשפוזים או הנשמה בעבר בעקבות התקף?',1],['האם טסה לאחרונה טיסה ארוכה?',0],['מתי הייתה הפעם האחרונה שאכלה?',0]],explain:'באסתמה שואלים על עבר ידוע, טיפול עצמי במשאף, אשפוזים והנשמות קודמות, משך ההתקף ואלרגיות ידועות.'}},
+ {tab:'B – נשימה',reveal:{rr:'32',spo2:'89%'},scene:'קצב נשימה 32, סטורציה 89%. ההוצאה של האוויר ארוכה ומאומצת.',q:{type:'single',text:'מה מאפיין את הנשימה בהתקף אסתמה?',opts:[['אקספיריום מוארך וצפצופים',1],['קולות בעבוע וחרחור',0],['נשימה עמוקה עם כיווץ אצבעות',0],['נשימה איטית מתחת ל־8 בדקה',0]],explain:'באסתמה הסמפונות מתכווצים, ולכן הקושי הוא בעיקר בהוצאת האוויר (אקספיריום מוארך) ונשמעים צפצופים. בעבוע וחרחור מאפיינים בצקת ריאות.'}},
+ {tab:'C – דם ועור',reveal:{hr:'124',bp:'130/85'},scene:'דופק 124. היא יושבת עם נטייה קדימה, השפתיים וקצות האצבעות מכחילים.',q:{type:'single',text:'הכחלה בקצוות מעידה על:',opts:[['כיחלון פריפרי – סימן למצוקה נשימתית',1],['תגובה אלרגית עורית',0],['ירידה ברמת הסוכר',0],['קור בלבד, אין משמעות',0]],explain:'כיחלון פריפרי הוא חלק מהסימנים הנוספים של אסתמה ומעיד על חמצון לא מספק.'}},
+ {tab:'טיפול',scene:'החלטתם להתחיל טיפול.',q:{type:'multi',text:'סמן 4 פעולות טיפול נכונות:',opts:[['הושבה עם נטייה קדימה',1],['הרגעה',1],['עידוד המטופלת להשתמש במשאף שלה',1],['הזמנת נט"ן',1],['השכבה על הגב והרמת רגליים',0],['אספירין בלעיסה',0]],explain:'באסתמה: הושבה עם נטייה קדימה, הרגעה, עידוד שימוש במשאף האישי ונט"ן. השכבה מחמירה את הקושי בנשימה, ואספירין שייך לאירוע לבבי.'}},
+ {tab:'סכנות',scene:'בזמן ההמתנה לנט"ן אתם מנטרים אותה.',q:{type:'single',text:'מהי הסכנה העיקרית בהתקף אסתמה?',opts:[['דום נשימה',1],['בצקת ריאות',0],['שיתוק קבוע',0],['הלם לבבי',0]],explain:'הסכנה המרכזית באסתמה היא דום נשימה.'}}
+ ]},
+{id:'mi',em:'❤️',title:'כאב חזה במשרד',dx:'אוטם שריר הלב',code:'קוד אדום',
+ patient:'דוד, בן 58, מנהל חשבונות.',story:'כאב לוחץ בחזה שהתחיל לפני 20 דקות בזמן ישיבה. מזיע, חיוור ומפחד שהוא הולך למות.',
+ stages:[
+ {tab:'OPQRST',scene:'דוד יושב על הכיסא, יד על החזה.',q:{type:'order',text:'סדר את שאלות OPQRST לפי הסדר:',items:['מה קדם לאירוע? (Onset)','מה מחמיר או מקל? (Provokes)','איזה סוג כאב – לוחץ, דוקר, שורף? (Quality)','איפה הכאב ולאן מקרין? (Region)','כמה חזק מ־1 עד 10? (Severity)','מתי התחיל וכמה זמן נמשך? (Timing)'],explain:'O-P-Q-R-S-T: מה קדם, מה מחמיר, איכות, אזור והקרנה, חומרה, תזמון.'}},
+ {tab:'סימנים',scene:'הכאב מקרין ללסת ולכתף שמאל ולא משתנה כשהוא נושם עמוק.',q:{type:'multi',text:'אילו 3 סימנים אופייניים לאוטם?',opts:[['כאב מפושט שלא משתנה במגע או בנשימה',1],['הקרנה ללסת, לכתף שמאל או לגב',1],['הזעה וחיוורון',1],['כאב שמתגבר בנשימה עם חום של שבוע',0],['ריח אצטון מהפה',0]],explain:'כאב שמתגבר בנשימה יחד עם חום מתאים לדלקת ריאות, וריח אצטון מתאים להיפרגליקמיה.'}},
+ {tab:'C – דם ועור',reveal:{hr:'108',bp:'150/95',spo2:'94%',rr:'22'},scene:'דופק 108 ולא סדיר, ל"ד 150/95. עור קר ולח.',q:{type:'single',text:'דוד מספר שהיה לו כאב דומה בעבר שחלף במנוחה. איך מתייחסים?',opts:[['ברמת השטח אין הבדל בין תעוקה לאוטם – מטפלים כאוטם',1],['זו תעוקה יציבה, אפשר להשאיר אותו בבית',0],['מחכים 15 דקות ורואים אם עובר',0],['זה כנראה התקף חרדה',0]],explain:'בשטח לא ניתן להבדיל בין תעוקת חזה לאוטם, ולכן מטפלים כאילו מדובר באוטם.'}},
+ {tab:'אספירין',scene:'אתם שוקלים לתת אספירין.',q:{type:'multi',text:'על מה חובה לשאול לפני מתן אספירין?',opts:[['האם אתה מדמם?',1],['יש לך אולקוס?',1],['אתה אלרגי לאספירין?',1],['מתי אכלת לאחרונה?',0],['האם עשית מאמץ גופני היום?',0]],explain:'אספירין ניתן בתנאי שאין דימום, אין אולקוס ואין אלרגיה לאספירין.'}},
+ {tab:'מינון',scene:'אין התוויות נגד.',q:{type:'single',text:'מה המינון ואופן המתן?',opts:[['300 מ"ג בלעיסה',1],['100 מ"ג בבליעה עם מים',0],['300 מ"ג בבליעה בשלמות',0],['75 מ"ג מתחת ללשון',0]],explain:'אספירין 300 מ"ג בלעיסה.'}},
+ {tab:'טיפול',scene:'ממשיכים בטיפול.',q:{type:'multi',text:'סמן 4 פעולות טיפול נכונות:',opts:[['הושבה',1],['הרגעה',1],['חמצן',1],['הזמנת נט"ן',1],['השכבה עם הרמת רגליים',0],['גלוקוג\'ל',0]],explain:'באוטם: הושבה, הרגעה, נט"ן, חמצן ואספירין בלעיסה.'}},
+ {tab:'סכנות',scene:'בדרך לבית החולים.',q:{type:'multi',text:'אילו 3 סכנות קיימות באוטם?',opts:[['הפרעות קצב / VF',1],['אי ספיקת לב',1],['הלם לבבי',1],['צניחת בסיס לשון',0],['התייבשות',0]],explain:'הסכנות באוטם הן הפרעות קצב (VF), אי ספיקת לב והלם לבבי.'}}
+ ]},
+{id:'stroke',em:'🧠',title:'סבתא מבולבלת',dx:'שבץ מוחי',code:'קוד אדום',
+ patient:'רחל, בת 67.',story:'הנכדה מצאה אותה מבולבלת על הספה. הדיבור לא ברור והיד השמאלית חלשה.',
+ stages:[
+ {tab:'אנמנזה',scene:'הנכדה הגיעה לפני 10 דקות. רחל הייתה לבד בבית.',q:{type:'single',text:'מה השאלה החשובה ביותר כרגע?',opts:[['מי ראה אותה אחרון ומתי – כדי לדעת מתי התחילו הסימנים',1],['האם היא אכלה ארוחת צהריים',0],['האם יש לה ביטוח רפואי',0],['האם היא מעשנת',0]],explain:'חשוב לדעת כמה זמן עבר מתחילת הסימנים, ולכן שואלים מי ראה אותה אחרון.'}},
+ {tab:'FAST',scene:'אתם מתחילים בדיקה נוירולוגית.',q:{type:'order',text:'סדר את בדיקת FAST:',items:['F – בקש לחייך: צד אחד של הפנים נפול?','A – בקש להרים 2 ידיים: יד אחת נופלת?','S – בקש לחזור על משפט: הדיבור משובש?','T – זמן: מתי התחילו הסימנים?'],explain:'Face, Arms, Speech, Time. בנוסף מודדים לחץ דם בשתי הידיים.'}},
+ {tab:'D – גלוקומטר',reveal:{avpu:'V',sugar:'112'},scene:'רחל מגיבה רק לקול. מדדתם סוכר: 112.',q:{type:'single',text:'למה חובה לבדוק סוכר במצב כזה?',opts:[['היפוגליקמיה יכולה להיראות כמו שבץ ולהפך',1],['כדי להחליט כמה סוכר לתת לה לשתות',0],['זה לא חובה בשבץ',0],['רק כדי למלא את הדיווח',0]],explain:'בכל ירידה בהכרה או תופעות נוירולוגיות בודקים סוכר. אם בהיפו הסוכר יוצא תקין – חושדים בשבץ.'}},
+ {tab:'סוג השבץ',reveal:{bp:'190/110',hr:'56',rr:'24'},scene:'ל"ד 190/110, דופק 56, האישונים לא שווים.',q:{type:'single',text:'לאיזה סוג שבץ זה מתאים יותר?',opts:[['המורגי – קרע בכלי דם',1],['איסכמי – חסימה',0],['TIA – שבץ חולף',0],['אי אפשר שזה שבץ',0]],explain:'בשבץ המורגי: ל"ד גבוה, דופק איטי או רגיל, אישונים לא שווים או סטיית מבט.'}},
+ {tab:'טיפול',scene:'זמן להחליט על טיפול ופינוי.',q:{type:'multi',text:'סמן 4 פעולות נכונות:',opts:[['שמירה על נתיב אוויר',1],['חמצן',1],['בדיקת סוכר',1],['פינוי דחוף לבי"ח ייעודי',1],['להמתין לנט"ן במקום',0],['לתת לה לשתות מים',0]],explain:'בשבץ לא מזמינים נט"ן אלא מפנים ישירות לבי"ח ייעודי – לבן דחוף.'}},
+ {tab:'מלכודת',scene:'הנכדה מביאה כוס תה מתוק "שיהיה לה כוח".',q:{type:'single',text:'מה עונים לה?',opts:[['אסור לתת לאדם עם שבץ לאכול או לשתות',1],['רק לגימה קטנה',0],['רק אם הסוכר נמוך',0],['מותר, זה עוזר',0]],explain:'לעולם לא נותנים לאדם עם שבץ לאכול או לשתות – יש סכנת חנק.'}}
+ ]},
+{id:'hypo',em:'🍬',title:'מבולבל בחדר הכושר',dx:'היפוגליקמיה',code:'קוד כתום',
+ patient:'יוסי, בן 34, סוכרתי שמטופל באינסולין.',story:'אחרי אימון ארוך הוא מבולבל, עצבני, רועד ומזיע. הוא דילג על ארוחת הצהריים.',
+ stages:[
+ {tab:'סימנים',scene:'יוסי יושב על ספסל, מזיע ורועד.',q:{type:'multi',text:'אילו 3 סימנים מתאימים להיפוגליקמיה?',opts:[['ירידה מהירה במצב ההכרה',1],['זיעה וחיוורון',1],['רעד, אי שקט, כעס',1],['ריח אצטון מהפה',0],['עור אדום, חם ויבש',0]],explain:'ריח אצטון ועור אדום, חם ויבש שייכים להיפרגליקמיה, שמתפתחת לאט.'}},
+ {tab:'גורמים',scene:'החבר שלו מספר מה קרה היום.',q:{type:'multi',text:'אילו 3 גורמים כאן מסבירים את המצב?',opts:[['נטילת אינסולין',1],['פספוס ארוחה',1],['פעילות גופנית חריגה',1],['טיסה ארוכה',0],['עקיצת דבורה',0]],explain:'גורמי היפו: נטילת יתר של אינסולין, פספוס ארוחה או צום, פעילות גופנית חריגה, אלכוהול ועוד.'}},
+ {tab:'D – גלוקומטר',reveal:{avpu:'V',sugar:'41',hr:'112',rr:'22'},scene:'סוכר 41. הוא מגיב לקול.',q:{type:'single',text:'מהו טווח הסוכר התקין?',opts:[['60–110',1],['30–60',0],['110–180',0],['200–250',0]],explain:'סוכר תקין הוא 60–110. ערך של 41 נמוך משמעותית.'}},
+ {tab:'טיפול',scene:'הוא בהכרה ומסוגל לבלוע.',q:{type:'single',text:'מה נותנים לו?',opts:[['גלוקוג\'ל, שתייה ממותקת או דבש',1],['אינסולין',0],['מים בלבד',0],['כלום עד בית החולים',0]],explain:'לחולה בהכרה נותנים גלוקוג\'ל, שתייה ממותקת או דבש.'}},
+ {tab:'מעקב',reveal:{sugar:'78',avpu:'A'},scene:'נתתם גלוקוג\'ל. הוא מתחיל להתבהר.',q:{type:'single',text:'מתי בודקים סוכר שוב?',opts:[['5 דקות אחרי מתן הגלוקוג\'ל',1],['רק בבית החולים',0],['אחרי שעה',0],['אין צורך אם הוא נראה טוב',0]],explain:'5 דקות אחרי מתן גלוקוג\'ל עושים בדיקת סוכר חוזרת.'}},
+ {tab:'מלכודת',scene:'תרחיש אחר: מטופל היפו מחוסר הכרה, נושם ויש לו דופק.',q:{type:'single',text:'איך משכיבים אותו?',opts:[['על הצד',1],['על הגב עם הרמת רגליים',0],['בישיבה',0],['על הבטן',0]],explain:'היפו ללא הכרה עם דופק ונשימה – משכיבים על הצד. לא נותנים דבר דרך הפה.'}},
+ {tab:'חשד',scene:'ועוד תרחיש: חשבתם על היפו, אבל הסוכר יצא 95.',q:{type:'single',text:'במה צריך לחשוד?',opts:[['שבץ',1],['היפרגליקמיה',0],['אסתמה',0],['שזה בסדר, אפשר לשחרר',0]],explain:'אם בחשד להיפו בדיקת הסוכר תקינה – יש לחשוד בשבץ.'}}
+ ]},
+{id:'anaph',em:'🥜',title:'עוגה עם בוטנים',dx:'אנאפילקסיס',code:'קוד אדום',
+ patient:'נועה, בת 19, במסיבת יום הולדת.',story:'אכלה עוגה, ותוך דקות הופיעה פריחה, הלשון התנפחה והיא מרגישה מועקה בגרון.',
+ stages:[
+ {tab:'סימנים',scene:'הקול של נועה צרוד ונשמעים צפצופים.',q:{type:'multi',text:'אילו 3 סימנים שייכים לתגובה הנשימתית?',opts:[['נפיחות בלשון',1],['מועקה בגרון',1],['צפצופים, שיעול וצרידות',1],['פריחה מפושטת',0],['שלשולים',0]],explain:'פריחה שייכת לתגובה העורית ושלשולים לתגובה של מערכת העיכול.'}},
+ {tab:'C – דם ועור',reveal:{hr:'128',bp:'85/50',spo2:'91%',rr:'28'},scene:'דופק 128, ל"ד 85/50, היא מסוחררת.',q:{type:'single',text:'מה זה מעיד?',opts:[['קריסה המודינמית מתפתחת',1],['תגובה עורית בלבד',0],['התקף חרדה',0],['מצב תקין לגילה',0]],explain:'נפילת לחץ דם עם דופק מהיר היא תגובה של מערכת הלב וכלי הדם – סכנה של קריסה המודינמית.'}},
+ {tab:'אנמנזה',scene:'חברה שלה עומדת לידה.',q:{type:'multi',text:'אילו 3 שאלות הכי רלוונטיות?',opts:[['ידוע על רקע אלרגי?',1],['יש לה אפיפן?',1],['האם כבר השתמשה בו?',1],['האם טסה לאחרונה?',0],['האם היא סוכרתית?',0]],explain:'באלרגיה שואלים: רקע אלרגי, חשיפה לאלרגן, מתי התחילו הסימנים, האם יש אפיפן והאם השתמשה – ואם לא, מסייעים.'}},
+ {tab:'אפיפן',scene:'בתיק שלה שני מזרקים: צהוב וירוק.',q:{type:'single',text:'איזה אפיפן מתאים לה?',opts:[['צהוב – מבוגרים',1],['ירוק – ילדים',0],['שניהם יחד',0],['אף אחד',0]],explain:'אפיפן ירוק לילדים, צהוב למבוגרים.'}},
+ {tab:'טיפול',scene:'ממשיכים בטיפול.',q:{type:'multi',text:'סמן 4 פעולות נכונות:',opts:[['תמיכה ב־ABC ושמירה על נתיב אוויר',1],['הרחקה מהגורם האלרגני',1],['חמצן',1],['הזמנת נט"ן',1],['לתת לה לשתות מים',0],['להשאיר לבד שתירגע',0]],explain:'באנאפילקסיס: תמיכה ב־ABC, חמצן, נט"ן, הרחקה מהגורם ומתן אפיפן.'}},
+ {tab:'סכנות',scene:'מנטרים בזמן ההמתנה.',q:{type:'multi',text:'אילו 2 סכנות עיקריות?',opts:[['איום על דרכי האוויר',1],['קריסה המודינמית',1],['שיתוק קבוע',0],['בצקת ריאות',0]],explain:'הסכנות באנאפילקסיס: איום על דרכי האוויר וקריסה המודינמית.'}}
+ ]},
+{id:'seizure',em:'⚡',title:'נפל ופירכס ברחוב',dx:'פרכוסים',code:'קוד כתום',
+ patient:'אבי, בן 45.',story:'עוברי אורח ראו אותו נופל ומפרכס כדקה. כשהגעתם הוא כבר לא מפרכס, אבל מבולבל.',
+ stages:[
+ {tab:'במהלך ההתקף',scene:'נניח שהגעתם בזמן הפרכוס.',q:{type:'multi',text:'אילו 3 פעולות נכונות במהלך ההתקף?',opts:[['ריפוד הראש',1],['סילוק חפצים מסביב',1],['השכבה על הצד',1],['להכניס משהו לפה שלא ינשוך',0],['לרסן את הידיים והרגליים בכוח',0]],explain:'במהלך ההתקף: ריפוד ראש, השכבה על הצד, סילוק חפצים, חמצן, שמירה על ABC ונט"ן.'}},
+ {tab:'סימנים',scene:'אתם בודקים אותו אחרי ההתקף.',q:{type:'multi',text:'אילו 3 סימנים מיוחדים מחזקים שהיה פרכוס?',opts:[['נשיכת לשון או נזק לרקמות הפה',1],['אי שליטה על סוגרים',1],['איבוד הכרה עם פרכוסים',1],['כיווץ אצבעות מנשימה מהירה',0],['ריח אצטון',0]],explain:'כיווץ אצבעות מנשימה מהירה מתאים לנשימת יתר.'}},
+ {tab:'D – גלוקומטר',reveal:{avpu:'V',sugar:'95',hr:'104',rr:'20',spo2:'95%'},scene:'מגיב לקול. סוכר 95.',q:{type:'single',text:'למה בודקים סוכר אחרי פרכוס?',opts:[['כל ירידה בתפקוד או בהכרה דורשת בדיקת סוכר',1],['כדי לדעת אם לתת אינסולין',0],['זה לא נדרש בפרכוס',0],['כדי לדעת אם הוא אפילפטי',0]],explain:'היפוגליקמיה היא אחד הגורמים לפרכוסים, וכל ירידה בהכרה דורשת בדיקת סוכר.'}},
+ {tab:'אנמנזה',scene:'אבי מתחיל לענות.',q:{type:'multi',text:'אילו 3 שאלות רלוונטיות?',opts:[['אתה אפילפטי? היו התקפים בעבר?',1],['נוטל תרופות נוגדות פרכוסים?',1],['חבלת ראש או מחלת חום לאחרונה?',1],['טסת לאחרונה?',0],['יש לך אפיפן?',0]],explain:'בפרכוסים שואלים על אפילפסיה, התקפים קודמים, תרופות, סוכרת, חבלת ראש ומחלת חום.'}},
+ {tab:'פינוי',scene:'אבי מתאושש ואומר שהוא מרגיש טוב ורוצה ללכת הביתה.',q:{type:'single',text:'מה עושים?',opts:[['כל פרכוס חייב להגיע לבית חולים',1],['אם הוא מרגיש טוב – משחררים',0],['משחררים אם הוא אפילפטי ידוע',0],['משחררים עם המלצה לרופא משפחה',0]],explain:'כל פרכוס חייב להגיע לבית חולים.'}},
+ {tab:'סכנות',scene:'מסכמים את הסיכונים.',q:{type:'multi',text:'אילו 3 סכנות קיימות בפרכוס?',opts:[['היפוקסיה מוחית',1],['אספירציה',1],['שברים ופצעים',1],['בצקת ריאות',0],['הלם אנאפילקטי',0]],explain:'הסכנות: היפוקסיה מוחית ומוות, שברים ופצעים, אספירציה.'}}
+ ]},
+{id:'pe',em:'✈️',title:'אחרי טיסה ארוכה',dx:'תסחיף ריאתי',code:'קוד אדום',
+ patient:'שירה, בת 31, נטלה גלולות.',story:'נחתה לפני שעתיים מטיסה של 12 שעות. פתאום קוצר נשימה חזק וכאב בחזה.',
+ stages:[
+ {tab:'רמז',scene:'שירה מתנשמת ומחזיקה את החזה.',q:{type:'single',text:'מה הרמז החשוב ביותר בסיפור?',opts:[['סיפור המקרה – טיסה ארוכה',1],['הגיל שלה',0],['השעה ביום',0],['שהיא מתנשמת',0]],explain:'בתסחיף ריאתי סיפור המקרה (טיסה, צלילה, ישיבה ממושכת) הוא סימן מיוחד.'}},
+ {tab:'C – דם ועור',reveal:{hr:'122',bp:'92/58',rr:'28',spo2:'90%'},scene:'דופק 122, ל"ד 92/58, נשימה 28.',q:{type:'single',text:'איזה מדד עוזר להבדיל בין תסחיף לאוטם?',opts:[['לחץ דם נמוך',1],['דופק מהיר',0],['סטורציה נמוכה',0],['כאב בחזה',0]],explain:'בתסחיף לחץ הדם נמוך – זה ההבדל בין אוטם לתסחיף.'}},
+ {tab:'גורמים',scene:'אתם בודקים גורמי סיכון.',q:{type:'multi',text:'סמן 4 גורמי סיכון לתסחיף:',opts:[['גלולות למניעת הריון',1],['עישון',1],['הריון',1],['מטופל לאחר ניתוח',1],['שתיית קפה',0],['פעילות גופנית סדירה',0]],explain:'בין הגורמים: נסיעה ממושכת, פקקת או תסחיף בעבר, סוכרת, שבר באגן, ניתוח, הריון, שכיבה ממושכת, סרטן, גלולות, עישון, COPD והשמנה.'}},
+ {tab:'טיפול',scene:'מתחילים טיפול.',q:{type:'single',text:'מה הטיפול הנכון?',opts:[['הרגעה, הושבה, חמצן, פינוי בהול וחבירה לנט"ן',1],['השכבה והרמת רגליים, המתנה',0],['אספירין והמתנה בבית',0],['קש לנשיפה איטית',0]],explain:'בתסחיף: הרגעה, הושבה, חמצן, פינוי בהול לבית חולים וחבירה לנט"ן.'}},
+ {tab:'הנשמה',scene:'הנשימה מאטה מאוד.',q:{type:'single',text:'מתי מבצעים הנשמה מסייעת?',opts:[['מתחת ל־8 נשימות בדקה',1],['מעל 20 נשימות בדקה',0],['רק אחרי דום לב',0],['אף פעם',0]],explain:'הנשמה מסייעת מבוצעת כשהמטופל נושם מתחת ל־8 נשימות בדקה.'}}
+ ]},
+{id:'hyper',em:'😮‍💨',title:'לפני המבחן',dx:'נשימת יתר',code:'קוד כתום',
+ patient:'ליאת, בת 22, סטודנטית.',story:'רבע שעה לפני מבחן התחילה לנשום מהר מאוד. מתלוננת על עקצוץ באצבעות וסחרחורת.',
+ stages:[
+ {tab:'סימנים',scene:'האצבעות שלה מתכווצות.',q:{type:'multi',text:'אילו 3 סימנים מתאימים לנשימת יתר?',opts:[['נימול באצבעות',1],['ספאזם – כיווץ אצבעות הידיים',1],['נשימה עמוקה ומהירה מאוד',1],['ריח אצטון',0],['קולות בעבוע',0]],explain:'ריח אצטון מתאים להיפרגליקמיה, ובעבוע מתאים לבצקת ריאות.'}},
+ {tab:'מנגנון',reveal:{rr:'36',hr:'118',spo2:'99%',avpu:'A'},scene:'נשימה 36, סטורציה 99%.',q:{type:'single',text:'מה קורה בגוף בנשימת יתר?',opts:[['סילוק מוגבר של CO₂ וחוסר איזון מטבולי',1],['הצטברות CO₂ בדם',0],['חסימה של הסמפונות',0],['נוזלים בריאות',0]],explain:'נשימות מהירות או עמוקות מאוד מסלקות יותר מדי CO₂ ויוצרות חוסר איזון מטבולי.'}},
+ {tab:'גורמים',scene:'לפני שמסיקים שזו "רק חרדה".',q:{type:'multi',text:'סמן 3 גורמים אפשריים לנשימת יתר:',opts:[['חרדה',1],['היפוקסיה',1],['חום, זיהום או כאב',1],['עקיצת דבורה',0],['שבר ברגל ישן',0]],explain:'גורמים: חרדה, היפוקסיה, מחלות ריאה, חום, זיהום, כאב, הריון ושימוש בסמים – לכן לא מניחים מראש שזו חרדה.'}},
+ {tab:'טיפול',scene:'מרגיעים אותה.',q:{type:'single',text:'מה הטיפ לטיפול?',opts:[['לתת קש ולהדריך לנשוף דרכו לאט',1],['לנשום לתוך שקית ניילון אטומה',0],['לבקש ממנה לעצור את הנשימה כמה שיותר',0],['לשלוח אותה למבחן',0]],explain:'טיפול: הושבה, הרגעה, חמצן ופינוי. טיפ – קש, נשימה פנימה והוצאה איטית של האוויר דרך הקש.'}},
+ {tab:'סכנות',scene:'מנטרים.',q:{type:'single',text:'מהי הסכנה בנשימת יתר?',opts:[['הפסקת נשימה',1],['שיתוק קבוע',0],['הלם לבבי',0],['אין שום סכנה',0]],explain:'הסכנה היא הפסקת נשימה.'}}
+ ]},
+{id:'cpr',em:'🫀',title:'התמוטט בתחנה',dx:'החייאה במבוגר',code:'קוד אדום',
+ patient:'משה, בן 60.',story:'התמוטט בתחנת אוטובוס. עוברי אורח אומרים שהוא לא מגיב. אתם המטפלים הראשונים.',
+ stages:[
+ {tab:'סדר פעולות',scene:'הגעתם ראשונים.',q:{type:'order',text:'סדר את הפעולות:',items:['בטיחות: כפפות וסקירת זירה','הערכת הכרה – AVPU','הערכת נשימה','בדיקת דופק','דיווח למוקד והזעקת AED','התחלת עיסויים'],explain:'בטיחות, הכרה, נשימה, דופק, דיווח והזעקת AED, ואז החייאה.'}},
+ {tab:'נשימה',reveal:{avpu:'U'},scene:'לא מגיב. יש התנשמויות נדירות ולא סדירות.',q:{type:'single',text:'איך מתייחסים להתנשמויות האלה?',opts:[['נשימות אגונליות – מתייחסים כאילו לא נושם',1],['הוא נושם, אפשר להמתין',0],['מנשימים בלבד',0],['משכיבים על הצד',0]],explain:'נשימות אגונליות אינן נחשבות לנשימות. אם יש ספק – אין ספק.'}},
+ {tab:'עיסויים',reveal:{hr:'—',rr:'0',bp:'—'},scene:'אין דופק. מתחילים החייאה.',q:{type:'multi',text:'סמן 3 עקרונות נכונים לעיסויים:',opts:[['קצב 100–120 לדקה',1],['עומק 5–6 ס"מ',1],['משטח קשיח ומרפקים ישרים',1],['קצב 60–80 לדקה',0],['עומק 2–3 ס"מ',0]],explain:'קצב 100–120, עומק 5–6 ס"מ, משטח קשיח, מרפקים ישרים ומינימום הפסקות.'}},
+ {tab:'AED – שוק',scene:'הגיע AED. המכשיר ממליץ על שוק.',q:{type:'single',text:'מה עושים?',opts:[['לא לגעת, ללחוץ, להמשיך החייאה, ואחרי 2 דקות להקשיב למכשיר',1],['לבדוק דופק לפני השוק',0],['להפסיק עיסויים עד הגעת אמבולנס',0],['להמשיך לעסות בזמן השוק',0]],explain:'בשוק מומלץ: לא נוגעים בחולה, לוחצים, ממשיכים בהחייאה ואחרי 2 דקות מקשיבים למכשיר.'}},
+ {tab:'AED – ללא שוק',scene:'בסבב הבא המכשיר לא ממליץ על שוק.',q:{type:'single',text:'מה עושים?',opts:[['בודקים דופק; אם אין – ממשיכים בהחייאה',1],['מפסיקים את ההחייאה',0],['מנתקים את המכשיר',0],['מחכים בלי לגעת',0]],explain:'בשוק לא מומלץ בודקים דופק. אין דופק – ממשיכים בהחייאה. יש דופק – בודקים נשימה.'}},
+ {tab:'ROSC',reveal:{hr:'78',bp:'100/60'},scene:'חזר דופק, אבל הוא לא נושם.',q:{type:'single',text:'מה עושים?',opts:[['הנשמה אחת כל 5–6 שניות ובדיקת דופק חוזרת',1],['ממשיכים עיסויים',0],['משכיבים על הצד וממתינים',0],['מתחילים לפנות בלי לטפל',0]],explain:'דופק בלי נשימה – הנשמות בלבד, אחת כל 5–6 שניות, עם בדיקות דופק חוזרות.'}},
+ {tab:'זמן',scene:'שאלת סיכום.',q:{type:'single',text:'כמה זמן עובר בין מוות קליני למוות מוחי?',opts:[['כ־4–6 דקות',1],['כ־20 דקות',0],['כשעה',0],['30 שניות',0]],explain:'כ־4–6 דקות. תא מוח שנהרס לא מתחדש – ולכן מתחילים מייד ולא עוצרים עיסויים.'}}
+ ]}
+];
+
+/* ---------- STATE ---------- */
+const $=s=>document.querySelector(s);
+const app=$('#app');
+let S=null, timerId=null, chosenMin=6;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const best=id=>{try{return +localStorage.getItem('sim-best-'+id)||null}catch(e){return null}};
+const saveBest=(id,p)=>{try{if(!best(id)||p>best(id))localStorage.setItem('sim-best-'+id,p)}catch(e){}};
+
+function setBar(on){['#scorePill','#timerPill','#steps'].forEach(s=>$(s).hidden=!on);if(!on)$('#progBar').style.width='0'}
+
+/* ---------- MENU ---------- */
+function menu(){
+  clearInterval(timerId);setBar(false);
+  app.innerHTML=`<div class="card">
+    <span class="hero-logo"><img src="data:image/png;base64,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" alt="איחוד הצלה"></span>
+    <h1>בחר מקרה ויוצאים לשטח 🚑</h1>
+    <p class="muted" style="margin:0">כל מקרה בנוי כמו הזנקה אמיתית: תקציר, מוניטור מדדים שמתעדכן, ושאלות לפי שלבי הטיפול. כל שאלה שווה 10 נקודות, עם ניקוד חלקי ומשוב מיידי.</p>
+    <div class="opts-row"><label for="tm">זמן לכל מקרה:</label>
+      <select id="tm"><option value="4">4 דקות</option><option value="6" selected>6 דקות</option><option value="8">8 דקות</option><option value="0">ללא הגבלה</option></select>
+      <button class="btn go" id="rnd">🎲 מקרה אקראי</button></div>
+  </div>
+  <div class="cases">${CASES.map(c=>`<button class="case" data-id="${c.id}">
+    <span class="top"><span class="em">${c.em}</span><b>${c.title}</b>${best(c.id)!=null?`<span class="best">שיא: ${best(c.id)}%</span>`:''}</span>
+    <span class="meta">${c.stages.length} שלבים · ${c.code}</span></button>`).join('')}</div>`;
+  $('#tm').value=chosenMin;
+  $('#tm').onchange=e=>chosenMin=+e.target.value;
+  app.querySelectorAll('.case').forEach(b=>b.onclick=()=>brief(CASES.find(c=>c.id===b.dataset.id)));
+  $('#rnd').onclick=()=>brief(CASES[Math.floor(Math.random()*CASES.length)]);
+  scrollTo(0,0);
+}
+
+/* ---------- BRIEF ---------- */
+function brief(c){
+  setBar(false);
+  app.innerHTML=`<div class="card">
+    <div class="dispatch"><span class="siren" aria-hidden="true">🚨</span><div><small>הזנקת חירום</small><h2>${c.title}</h2></div><span class="code">${c.code}</span></div>
+    <div class="brief"><b>📟 תקציר הזנקה</b>
+      <p><b>מטופל:</b> ${c.patient}</p><p><b>סיפור מקרה:</b> ${c.story}</p>
+      <p><b>משימה:</b> נהל את המקרה לפי השלבים: ${c.stages.map(s=>s.tab).join(' ← ')}</p></div>
+    <div class="row"><button class="btn go" id="start" style="flex:1">🚑 צא למקרה!</button><button class="btn ghost" id="back">חזרה</button></div>
+  </div>`;
+  $('#start').onclick=()=>start(c);$('#back').onclick=menu;
+}
+
+/* ---------- GAME ---------- */
+function start(c){
+  S={c,i:0,score:0,max:c.stages.length*10,log:[],vit:{avpu:'--',rr:'--',spo2:'--',hr:'--',bp:'--',sugar:'--'},left:chosenMin*60};
+  setBar(true);$('#scoreV').textContent=0;$('#scoreMax').textContent=S.max;
+  clearInterval(timerId);
+  if(chosenMin){tick();timerId=setInterval(()=>{S.left--;tick();if(S.left<=0){clearInterval(timerId);end(true)}},1000)}else $('#timerPill').hidden=true;
+  stage();
+}
+function tick(){const m=String(Math.floor(S.left/60)).padStart(2,'0'),s=String(S.left%60).padStart(2,'0');$('#timerV').textContent=m+':'+s;$('#timerPill').classList.toggle('low',S.left<=30)}
+function steps(){
+  $('#steps').innerHTML=S.c.stages.map((s,i)=>`<span class="${i<S.i?'done':i===S.i?'on':''}">${i+1}. ${s.tab}${i<S.i?' ✓':''}</span>`).join('');
+  $('#steps .on')?.scrollIntoView({inline:'center',block:'nearest'});
+  $('#progBar').style.width=(S.i/S.c.stages.length*100)+'%';
+}
+const LBL={avpu:'AVPU',rr:'נשימות',spo2:'SpO₂',hr:'דופק',bp:'ל"ד',sugar:'סוכר'};
+function alertVal(k,v){const n=parseFloat(v);if(isNaN(n))return k==='avpu'&&v!=='A'&&v!=='--';
+  return {rr:n>20||n<12,spo2:n<94,hr:n>100||n<60,bp:n>140||n<90,sugar:n<60||n>110}[k]}
+function monitor(newKeys=[]){
+  return `<div class="mon" aria-live="polite"><h3>מוניטור מדדים</h3><div class="vit">${Object.keys(LBL).map(k=>`<div class="${newKeys.includes(k)?'flash':''}"><small>${LBL[k]}</small><b class="${alertVal(k,S.vit[k])?'alert':''}">${S.vit[k]}</b></div>`).join('')}</div></div>`;
+}
+function stage(){
+  const st=S.c.stages[S.i], q=st.q; steps();
+  const nk=Object.keys(st.reveal||{}); Object.assign(S.vit,st.reveal||{});
+  let body='';
+  if(q.type==='order'){
+    let cur; do{cur=shuffle(q.items.map((t,i)=>i))}while(cur.every((v,i)=>v===i));
+    S.cur=cur;
+  } else S.cur=shuffle(q.opts.map((o,i)=>i));
+  S.sel=new Set(); S.done=false;
+  const need=q.type==='multi'?q.opts.filter(o=>o[1]).length:0;
+  app.innerHTML=`<div class="card">
+    <div class="stagehead"><span class="tag acc">שלב ${S.i+1}/${S.c.stages.length}</span><span class="tag">${st.tab}</span><span class="tag pts">10 נק'</span></div>
+    ${monitor(nk)}
+    <div class="scene"><small>📋 מצב בזירה</small><div>${st.scene}</div></div>
+    <div class="q">${q.text}</div>
+    <div class="hint">${q.type==='order'?'השתמש בחיצים כדי לסדר':q.type==='multi'?`סמן ${need} תשובות נכונות`:'בחר תשובה אחת'}</div>
+    <div id="qa"></div>
+    <button class="btn go full" id="check">✓ אשר תשובה ובדוק</button>
+    <div id="fb"></div></div>`;
+  drawQ(); $('#check').onclick=check; scrollTo(0,0);
+}
+function drawQ(res){
+  const q=S.c.stages[S.i].q, qa=$('#qa');
+  if(q.type==='order'){
+    qa.innerHTML=S.cur.map((it,pos)=>`<div class="ord ${res?(it===pos?'right':'wrong'):''}"><span class="n">${pos+1}</span><span class="t">${q.items[it]}</span>
+      ${res?'':`<button aria-label="למעלה" data-u="${pos}" ${pos===0?'disabled':''}>▲</button><button aria-label="למטה" data-d="${pos}" ${pos===S.cur.length-1?'disabled':''}>▼</button>`}</div>`).join('');
+    qa.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const p=+b.dataset.u;[S.cur[p-1],S.cur[p]]=[S.cur[p],S.cur[p-1]];drawQ()});
+    qa.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const p=+b.dataset.d;[S.cur[p+1],S.cur[p]]=[S.cur[p],S.cur[p+1]];drawQ()});
+  } else {
+    qa.innerHTML=S.cur.map(i=>{const o=q.opts[i],s=S.sel.has(i);let cls='';
+      if(res){cls=o[1]&&s?'right':!o[1]&&s?'wrong':o[1]?'miss':''}
+      return `<button class="opt ${q.type==='single'?'radio':''} ${s?'sel':''} ${cls}" data-i="${i}" ${res?'disabled':''} aria-pressed="${s}"><span class="box"></span><span>${o[0]}</span></button>`}).join('');
+    qa.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;
+      if(q.type==='single'){S.sel=new Set([i])}else{S.sel.has(i)?S.sel.delete(i):S.sel.add(i)}drawQ()});
+  }
+}
+function check(){
+  const q=S.c.stages[S.i].q;
+  if(q.type!=='order'&&!S.sel.size){$('#fb').innerHTML='<div class="fb p"><b>בחר תשובה קודם 🙂</b></div>';return}
+  let pts;
+  if(q.type==='order'){pts=Math.round(S.cur.filter((v,i)=>v===i).length/S.cur.length*10)}
+  else if(q.type==='single'){pts=q.opts[[...S.sel][0]][1]?10:0}
+  else{const need=q.opts.filter(o=>o[1]).length,hit=[...S.sel].filter(i=>q.opts[i][1]).length,bad=S.sel.size-hit;pts=Math.max(0,Math.round((hit-bad)/need*10))}
+  S.score+=pts;$('#scoreV').textContent=S.score;
+  S.log.push({tab:S.c.stages[S.i].tab,q:q.text,pts,explain:q.explain});
+  drawQ(true);
+  const cls=pts===10?'g':pts>0?'p':'b', t=pts===10?'✅ תשובה נכונה!':pts>0?'⚠️ תשובה נכונה חלקית':'❌ לא נכון';
+  const ordFix=q.type==='order'&&pts<10?`<p><b>הסדר הנכון:</b> ${q.items.map((x,i)=>(i+1)+'. '+x).join(' · ')}</p>`:'';
+  const last=S.i===S.c.stages.length-1;
+  $('#check').outerHTML=`<button class="btn ok full" id="next">${last?'🏁 לסיכום המקרה':'המשך לשלב הבא ←'}</button>`;
+  $('#fb').innerHTML=`<div class="fb ${cls}"><b><span>${t}</span><span>+${pts}/10</span></b><p>${q.explain}</p>${ordFix}</div>`;
+  $('#next').onclick=()=>{S.i++; last?end(false):stage()};
+  $('#next').focus({preventScroll:true});
+}
+function end(timeout){
+  clearInterval(timerId);
+  const pct=Math.round(S.score/S.max*100); saveBest(S.c.id,pct);
+  $('#progBar').style.width='100%'; S.i=S.c.stages.length; steps();
+  const [c,msg]=pct>=90?['var(--ok)','מצוין! ניהול מקרה ברמה גבוהה 🏆']:pct>=70?['var(--ok)','טוב מאוד – עוד קצת חידוד 💪']:pct>=50?['var(--warn)','בסדר – כדאי לחזור על החומר 📚']:['var(--bad)','שווה לעבור שוב על הסיכום 🔁'];
+  const missed=S.c.stages.slice(S.log.length);
+  app.innerHTML=`<div class="card">
+    ${timeout?'<div class="fb b" style="margin:0 0 14px"><b>⏰ נגמר הזמן!</b></div>':''}
+    <div class="score"><div class="ring" style="--p:${pct};--c:${c}"><div>${pct}%</div></div>
+      <div><small class="muted">${S.c.dx}</small><h1>${msg}</h1><p class="muted" style="margin:0">צברת ${S.score} מתוך ${S.max} נקודות</p></div></div>
+    <div class="rev"><h2>סקירת שלבים</h2>
+      ${S.log.map(l=>`<details><summary><span>${l.pts===10?'✅':l.pts>0?'⚠️':'❌'} ${l.tab}</span><span class="s">${l.pts}/10</span></summary><p><b>${l.q}</b><br>${l.explain}</p></details>`).join('')}
+      ${missed.map(s=>`<details><summary><span>⏭️ ${s.tab}</span><span class="s">0/10</span></summary><p><b>${s.q.text}</b><br>${s.q.explain}</p></details>`).join('')}
+    </div>
+    <div class="row"><button class="btn go" id="again">🔁 נסה שוב</button><button class="btn ghost" id="menu">מקרה אחר</button></div></div>`;
+  $('#again').onclick=()=>start(S.c);$('#menu').onclick=menu;scrollTo(0,0);
+}
+menu();
+</script>
+</body>
+</html>
