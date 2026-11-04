@@ -1,0 +1,16 @@
+{
+  "name": "איחוד הצלה – סימולטור ומדריך שטח",
+  "short_name": "מדריך שטח",
+  "description": "סימולטור מקרים ABCDE ומדריך שטח מהיר לכוננים",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./#field",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B1220",
+  "theme_color": "#E8691A",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

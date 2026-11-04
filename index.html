@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>איחוד הצלה | סימולטור מקרים – ABCDE</title>
+<meta name="theme-color" content="#E8691A">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="מדריך שטח">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -202,6 +209,37 @@ select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--l
 .fg-num small{color:var(--muted)}
 .fg-empty{color:var(--muted);text-align:center;padding:30px 0}
 @media (max-width:560px){.fg-grid{grid-template-columns:repeat(2,1fr)}.fg-tile{min-height:104px;font-size:1rem;padding:14px 10px}.fg-card h1{font-size:1.5rem}}
+
+/* ---------- field tools: metronome + timers ---------- */
+.ft-wrap{display:grid;gap:14px}
+.ft-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.ft-box h2{margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.ft-metro{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ft-beat{width:96px;height:96px;border-radius:50%;background:var(--panel2);border:3px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:1.3rem;flex:none;transition:transform .05s,background .05s}
+.ft-beat.on{background:var(--acc);border-color:var(--acc2);color:#fff;transform:scale(1.08)}
+.ft-bpm{display:flex;align-items:center;gap:8px}
+.ft-bpm b{font-size:1.6rem;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.ft-bpm button,.ft-tm button.sm{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:1.2rem;font-weight:800}
+.ft-big{border:none;border-radius:14px;padding:14px 22px;font-weight:800;font-size:1.1rem;min-width:140px}
+.ft-big.start{background:var(--ok);color:#fff}
+.ft-big.stop{background:var(--bad);color:#fff}
+.ft-presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.ft-presets button{background:var(--panel2);border:1.5px solid var(--line);border-radius:14px;padding:14px 10px;color:var(--ink);font-weight:800;font-size:1rem;display:flex;flex-direction:column;gap:4px;align-items:center}
+.ft-presets button small{color:var(--muted);font-weight:600}
+.ft-presets button:hover{border-color:var(--acc)}
+.ft-tm{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin:8px 0}
+.ft-tm .t{font-family:ui-monospace,Menlo,monospace;font-size:2rem;font-weight:800;direction:ltr;min-width:110px;text-align:center;font-variant-numeric:tabular-nums;color:var(--ok)}
+.ft-tm.low .t{color:var(--warn)}
+.ft-tm.done{border-color:var(--bad);background:var(--bad-bg);animation:ftblink 1s infinite}
+.ft-tm.done .t{color:var(--bad)}
+@keyframes ftblink{50%{border-color:transparent}}
+@media (prefers-reduced-motion:reduce){.ft-tm.done{animation:none}}
+.ft-tm .l{flex:1;min-width:0}.ft-tm .l b{display:block}.ft-tm .l small{color:var(--muted)}
+.ft-tm .x{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:1.1rem}
+.ft-badge{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));inset-inline-start:14px;z-index:20;background:var(--mon);color:var(--mon-ink);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:10px 16px;font-weight:800;text-decoration:none;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.ft-badge b{font-family:ui-monospace,Menlo,monospace;direction:ltr;color:var(--mon-val)}
+.ft-badge.alarm{background:var(--bad);color:#fff}.ft-badge.alarm b{color:#fff}
+.ft-note{color:var(--muted);font-size:.9rem;margin:8px 0 0}
 </style>
 </head>
 <body>
@@ -470,6 +508,7 @@ function route(){
   document.querySelectorAll('.vtabs a').forEach(a=>a.setAttribute('aria-current',a.dataset.v===VIEW?'page':'false'));
   if(learn){placeFrame(); if(learnId) openLearnAt(learnId)}
   if(field) renderField(h);
+  if(typeof ftBadge==='function') ftBadge();
 }
 addEventListener('hashchange',route);addEventListener('resize',()=>VIEW==='learn'&&placeFrame());
 
@@ -574,7 +613,7 @@ function renderField(h){
       <div id="fgres"></div>
       <div class="fg-grid" id="fgtiles">${FG_COMPLAINTS.map(c=>`<a class="fg-tile" href="#field/${c.id}"><span class="em">${c.em}</span>${c.t}</a>`).join('')}</div>
       <div class="fg-h">עוד</div>
-      <div class="fg-grid"><a class="fg-tile sub" href="#field/nums"><span class="em">🔢</span>מספרים חשובים</a><a class="fg-tile sub" href="#field/all"><span class="em">📋</span>כל המצבים</a><a class="fg-tile sub" href="#learn"><span class="em">📚</span>חומר לימוד מלא</a></div>`;
+      <div class="fg-grid"><a class="fg-tile sub" href="#field/tools"><span class="em">⏱</span>מטרונום וטיימרים</a><a class="fg-tile sub" href="#field/nums"><span class="em">🔢</span>מספרים חשובים</a><a class="fg-tile sub" href="#field/all"><span class="em">📋</span>כל המצבים</a><a class="fg-tile sub" href="#learn"><span class="em">📚</span>חומר לימוד מלא</a></div>`;
   } else if(p[1]==='c'&&FG_CONDS[p[2]]){
     const c=FG_CONDS[p[2]];
     out=`<div class="fg-top">${fgBack('#field','חזרה')}</div><div class="fg-card">
@@ -584,7 +623,10 @@ function renderField(h){
       <div class="fg-sec treat"><h3>טיפול</h3><ol class="fg-list">${c.treat.map(x=>`<li>${x}</li>`).join('')}</ol></div>
       ${c.danger?`<div class="fg-sec danger"><h3>סכנות</h3><p>${c.danger}</p></div>`:''}
       ${c.ask.length?`<div class="fg-sec ask"><h3>לשאול</h3><ol class="fg-list ask">${c.ask.map(x=>`<li>${x}</li>`).join('')}</ol></div>`:''}
-      <div class="fg-actions"><a class="fg-back" href="#learn/${p[2]}">📚 לחומר המלא</a></div></div>`;
+      <div class="fg-actions">${p[2]==='cpr'?'<a class="fg-back" href="#field/tools/cpr">♩ מטרונום + AED 2 דק\'</a>':p[2]==='anaph'?'<a class="fg-back" href="#field/tools/epi">⏱ אפיפן 5 דק\'</a>':p[2]==='hypo'?'<a class="fg-back" href="#field/tools/sugar">⏱ סוכר חוזר 5 דק\'</a>':'<a class="fg-back" href="#field/tools">⏱ טיימרים</a>'}<a class="fg-back" href="#learn/${p[2]}">📚 לחומר המלא</a></div></div>`;
+  } else if(p[1]==='tools'){
+    out=`<div class="fg-top">${fgBack('#field','חזרה')}<h1>⏱ כלים</h1></div><div id="ftTools"></div>`;
+    fgEl.innerHTML=out; scrollTo(0,0); ftRenderTools(); if(p[2]) ftAuto(p[2]); ftBadge(); return;
   } else if(p[1]==='nums'){
     const rows=Object.values(FG_CONDS).flatMap(c=>c.nums.map(n=>[n,c.t]));
     out=`<div class="fg-top">${fgBack('#field','חזרה')}<h1>🔢 מספרים חשובים</h1></div>
@@ -610,6 +652,49 @@ function openLearnAt(id){
   if(f.contentDocument&&f.contentDocument.getElementById(id)) setTimeout(go,50); else f.addEventListener('load',()=>setTimeout(go,50),{once:true});
 }
 
+/* ---------- FIELD TOOLS: metronome + timers (work offline, no deps) ---------- */
+const FT={ctx:null,metro:{on:false,bpm:110,next:0,beat:0,timer:null},timers:[],tick:null,wake:null};
+const FT_PRESETS={
+  aed:{label:'AED – סבב 2 דק\'',sub:'עיסויים עד האנליזה הבאה',sec:120,loop:true},
+  epi:{label:'אפיפן – 5 דק\'',sub:'אין שיפור? אישור מוקד למנה שנייה',sec:300},
+  sugar:{label:'סוכר חוזר – 5 דק\'',sub:'בדיקה חוזרת אחרי גלוקוג\'ל',sec:300},
+  t10:{label:'10 דקות',sub:'טיימר כללי',sec:600},
+};
+function ftAudio(){if(!FT.ctx){try{FT.ctx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}} if(FT.ctx&&FT.ctx.state==='suspended')FT.ctx.resume(); return FT.ctx}
+function ftBeep(at,freq,dur,gain){const c=FT.ctx;if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.value=freq;g.gain.setValueAtTime(gain,at);g.gain.exponentialRampToValueAtTime(0.0001,at+dur);o.connect(g).connect(c.destination);o.start(at);o.stop(at+dur+0.02)}
+function ftAlarm(){const c=ftAudio();if(c){const t=c.currentTime;for(let i=0;i<4;i++)ftBeep(t+i*0.25,880,0.18,0.5)} if(navigator.vibrate)navigator.vibrate([300,120,300,120,300])}
+async function ftWake(on){try{if(on&&!FT.wake&&navigator.wakeLock){FT.wake=await navigator.wakeLock.request('screen');FT.wake.addEventListener('release',()=>{FT.wake=null})}else if(!on&&FT.wake){await FT.wake.release();FT.wake=null}}catch(e){}}
+function ftMetroSched(){const c=FT.ctx,m=FT.metro;if(!c||!m.on)return;const iv=60/m.bpm;
+  while(m.next<c.currentTime+0.15){const accent=m.beat%10===0;ftBeep(m.next,accent?1100:800,0.05,0.35);
+    const delay=Math.max(0,(m.next-c.currentTime)*1000);setTimeout(()=>{const b=document.getElementById('ftBeat');if(b){b.classList.add('on');b.textContent=(m.beat%10)+1;setTimeout(()=>b.classList.remove('on'),90)}},delay);
+    m.next+=iv;m.beat++}}
+function ftMetro(on){const m=FT.metro;if(on){if(!ftAudio())return;m.on=true;m.beat=0;m.next=FT.ctx.currentTime+0.05;m.timer=setInterval(ftMetroSched,25);ftWake(true)}else{m.on=false;clearInterval(m.timer);ftWake(false)}ftRenderTools();ftBadge()}
+function ftBpm(d){FT.metro.bpm=Math.min(120,Math.max(100,FT.metro.bpm+d));const e=document.getElementById('ftBpm');if(e)e.textContent=FT.metro.bpm}
+function ftStart(key){const p=FT_PRESETS[key];if(!p)return;ftAudio();FT.timers.push({id:Date.now()+Math.random(),key,label:p.label,sub:p.sub,sec:p.sec,end:Date.now()+p.sec*1000,loop:!!p.loop,done:false});if(!FT.tick)FT.tick=setInterval(ftTick,250);ftRenderTools();ftBadge()}
+function ftStop(id){FT.timers=FT.timers.filter(t=>t.id!==id);if(!FT.timers.length){clearInterval(FT.tick);FT.tick=null}ftRenderTools();ftBadge()}
+function ftFmt(ms){const s=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function ftTick(){const now=Date.now();for(const t of FT.timers){if(!t.done&&now>=t.end){ftAlarm();if(t.loop){t.end=now+t.sec*1000}else t.done=true}
+  const el=document.getElementById('ft-'+t.id);if(el){const left=t.end-now;el.querySelector('.t').textContent=t.done?'00:00':ftFmt(left);el.classList.toggle('low',!t.done&&left<15000);el.classList.toggle('done',t.done)}}
+  ftBadge()}
+function ftBadge(){let b=document.getElementById('ftBadge');const active=FT.metro.on||FT.timers.length;const onTools=location.hash.startsWith('#field/tools');
+  if(!active||onTools){if(b)b.remove();return}
+  if(!b){b=document.createElement('a');b.id='ftBadge';b.className='ft-badge';b.href='#field/tools';document.body.appendChild(b)}
+  const t=FT.timers[0];const done=FT.timers.some(x=>x.done);b.classList.toggle('alarm',done);
+  b.innerHTML=(FT.metro.on?'<span>♩ '+FT.metro.bpm+'</span>':'')+(t?`<span>${t.done?'⏰':'⏱'}</span><b>${t.done?'00:00':ftFmt(t.end-Date.now())}</b>`:'')}
+function ftRenderTools(){const host=document.getElementById('ftTools');if(!host)return;const m=FT.metro;
+  host.innerHTML=`<div class="ft-wrap">
+   <div class="ft-box"><h2>♩ מטרונום עיסויים</h2>
+    <div class="ft-metro"><div class="ft-beat" id="ftBeat">${m.on?'':'▶'}</div>
+     <div class="ft-bpm"><button type="button" onclick="ftBpm(-5)" aria-label="פחות">−</button><b id="ftBpm">${m.bpm}</b><button type="button" onclick="ftBpm(5)" aria-label="יותר">+</button><span class="muted">לדקה</span></div>
+     <button type="button" class="ft-big ${m.on?'stop':'start'}" onclick="ftMetro(${!m.on})">${m.on?'■ עצור':'▶ התחל'}</button></div>
+    <p class="ft-note">קצב 100–120 לדקה, עומק 5–6 ס"מ. כל 10 עיסויים צליל גבוה יותר. המסך נשאר דולק בזמן הפעלה.</p></div>
+   <div class="ft-box"><h2>⏱ טיימרים</h2>
+    <div class="ft-presets">${Object.entries(FT_PRESETS).map(([k,p])=>`<button type="button" onclick="ftStart('${k}')">${p.label}<small>${p.sub}</small></button>`).join('')}</div>
+    <div id="ftList">${FT.timers.map(t=>`<div class="ft-tm${t.done?' done':''}" id="ft-${t.id}"><span class="t">${t.done?'00:00':ftFmt(t.end-Date.now())}</span><span class="l"><b>${t.label}${t.loop?' 🔁':''}</b><small>${t.done?'הזמן נגמר':t.sub}</small></span><button type="button" class="x" onclick="ftStop(${t.id})" aria-label="בטל">✕</button></div>`).join('')||'<p class="ft-note">אין טיימר פעיל. בחר למעלה – אפשר כמה במקביל.</p>'}</div>
+    <p class="ft-note">בסיום: צפצוף ורטט. הטיימרים ממשיכים לרוץ גם כשעוברים לכרטיס אחר (בועה בתחתית המסך).</p></div></div>`}
+function ftAuto(key){if(key==='cpr'){if(!FT.metro.on)ftMetro(true);if(!FT.timers.some(t=>t.key==='aed'))ftStart('aed')}else if(FT_PRESETS[key]&&!FT.timers.some(t=>t.key===key))ftStart(key)}
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 menu();route();
 </script>
 </body>
