@@ -1,6 +1,6 @@
 /* Service worker: works offline. Same-origin pages are network-first (so updates
    arrive when online) with cache fallback; fonts are cached on first use. */
-const CACHE = 'hcs-v1';
+const CACHE = 'hcs-v2';
 const CORE = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
