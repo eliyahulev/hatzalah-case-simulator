@@ -166,8 +166,10 @@ select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--l
 @media (max-width:560px){h1{font-size:1.35rem}.brand small{display:none}.btn{padding:12px 16px}}
 
 /* ---------- field guide ---------- */
-#field{max-width:960px;margin:0 auto;padding:16px 14px 70px}
+#fieldView{max-width:960px;margin:0 auto;padding:16px 14px 70px}
+#fieldView a{text-decoration:none}
 .fg-top{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.fg-top h1{flex:1;min-width:0}
 .fg-top h1{margin:0;font-size:1.5rem}
 .fg-top .sub{color:var(--muted);font-size:.9rem;flex-basis:100%;margin-top:-6px}
 .fg-back{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
@@ -176,19 +178,20 @@ select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--l
 .fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .fg-tile{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:18px 12px;min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:1.08rem;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;transition:border-color .15s,transform .15s}
 .fg-tile:hover{border-color:var(--acc);transform:translateY(-2px)}
-.fg-tile .em{font-size:2.1rem;line-height:1}
+.fg-tile .em{font-size:2.1rem;line-height:1;width:100%;text-align:center}
 .fg-tile.sub{background:var(--panel2);min-height:84px;font-size:.98rem}
 .fg-h{font-size:.85rem;color:var(--muted);font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.04em}
 .fg-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;margin:8px 0;color:var(--ink);transition:border-color .12s}
 .fg-row:hover{border-color:var(--acc)}
-.fg-row .em{font-size:1.55rem;flex:none}
-.fg-row b{font-size:1.12rem;display:block}
-.fg-row .key{color:var(--muted);font-size:.93rem;line-height:1.35}
+.fg-row .em{font-size:1.55rem;flex:none;width:36px;text-align:center}
+.fg-row .txt{flex:1;min-width:0}
+.fg-row b{font-size:1.12rem;display:block;line-height:1.3}
+.fg-row .key{color:var(--muted);font-size:.93rem;line-height:1.35;display:block;margin-top:2px}
 .fg-row .arr{margin-inline-start:auto;color:var(--muted);font-size:1.4rem;flex:none}
 .fg-card h1{font-size:1.75rem;margin:0;display:flex;align-items:center;gap:10px}
 .fg-card .en{color:var(--muted);font-size:1rem;font-weight:400;direction:ltr}
 .fg-key{border-inline-start:4px solid var(--acc);background:var(--panel2);border-radius:10px;padding:10px 14px;font-size:1.08rem;margin:12px 0}
-.fg-key small{display:block;color:var(--acc);font-weight:700;font-size:.8rem}
+.fg-key small{display:block;color:var(--acc);font-weight:700;font-size:.8rem;margin-bottom:2px}
 .fg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
 .fg-chips span{background:var(--mon);color:var(--mon-val);border-radius:10px;padding:8px 12px;font-weight:800;font-size:1.02rem;line-height:1.2}
 .fg-sec{border-radius:12px;padding:12px 14px;margin:10px 0;border-inline-start:5px solid var(--c);background:var(--cb)}
@@ -602,7 +605,7 @@ const FG_CONDS={
 const fgEl=$('#fieldView');
 const fgH=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const fgChips=a=>a.length?`<div class="fg-chips">${a.map(x=>`<span>${x}</span>`).join('')}</div>`:'';
-const fgRow=id=>{const c=FG_CONDS[id];return `<a class="fg-row" href="#field/c/${id}"><span class="em">${c.em}</span><span><b>${c.t}</b><span class="key">${c.key}</span></span><span class="arr">‹</span></a>`};
+const fgRow=id=>{const c=FG_CONDS[id];return `<a class="fg-row" href="#field/c/${id}"><span class="em">${c.em}</span><span class="txt"><b>${c.t}</b><span class="key">${c.key}</span></span><span class="arr">‹</span></a>`};
 const fgBack=(href,label)=>`<a class="fg-back" href="${href}">→ ${label}</a>`;
 function renderField(h){
   const p=h.split('/'); // ['#field', ...]
